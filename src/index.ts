@@ -1,9 +1,7 @@
 import { App } from "./classes/app";
-import pino from "pino";
+import { Logger } from "./classes/logger/logger";
 
-const logger = pino({
-    level: 'debug'
-});
+const logger = new Logger();
 
 const app = new App();
 app.run()

@@ -1,9 +1,7 @@
-import pino from "pino";
 import { Device } from "../device";
+import { Logger } from "../../logger/logger";
 
-const logger = pino({
-    level: 'debug'
-});
+const logger = new Logger();
 
 export class ServiceDevice extends Device  {
     public async execute() {

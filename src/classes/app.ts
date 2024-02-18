@@ -4,16 +4,16 @@ import { LocationDevice } from "./device/subclasses/locationDevice";
 import { ServiceDevice } from "./device/subclasses/serviceDevice";
 import { UpDevice } from "./device/subclasses/upDevice";
 import { DeviceFactory } from "./factories/deviceFactory";
-import pino from "pino";
 import { Type } from "../enums/type";
 import { RedisInstance } from "./singletons/redisInstance";
 import express from "express";
 import { MqttInstance } from "./singletons/mqttInstance";
 import { routes } from "../routes/routes";
+import { Level, Logger } from "./logger/logger";
+import { ForegroundColor } from "../enums/foregroundColor";
 
-const logger = pino({
-    level: 'debug'
-});
+const logger = new Logger();
+Logger.setLevel(Level.DEB);
 
 export class App {
     public async run() {
@@ -40,14 +40,14 @@ export class App {
     }
 
     private showHeader() {
-        logger.info('============================');
-        logger.info('Starting StreetLights Server');
-        logger.info('============================');
+        logger.info('============================'.yellow().reset());
+        logger.info('Starting StreetLights Server'.yellow().reset());
+        logger.info('============================'.yellow().reset());
         logger.info('');
     }
 
     private initDeviceFactory() {
-        logger.info('Initializing DeviceFactory');
+        logger.info('Initializing DeviceFactory 🏭', 'app', 'initDeviceFactory', ForegroundColor.Cyan);
 
         DeviceFactory.registerDevice(Type.JOIN, () => new JoinDevice());
         DeviceFactory.registerDevice(Type.UP, () => new UpDevice());

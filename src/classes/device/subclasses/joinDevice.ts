@@ -1,9 +1,8 @@
-import pino from 'pino';
+import { Logger } from '../../logger/logger';
 import {Device} from '../device';
 
-const logger = pino({
-    level: 'debug'
-});
+const logger = new Logger();
+
 
 export class JoinDevice extends Device  {
     public async execute() {

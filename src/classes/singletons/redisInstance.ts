@@ -1,16 +1,15 @@
 import Redis from 'ioredis';
-import pino from 'pino';
 import config from '../../../config/config.json';
+import { Logger } from '../logger/logger';
+import { ForegroundColor } from '../../enums/foregroundColor';
 
-const logger = pino({
-    level: 'debug'
-});
+const logger = new Logger();
 
 export class RedisInstance {
     private static instance: Redis;
 
     private constructor() {
-        logger.info(`Created a RedisInstance`);
+        logger.info(`Created a RedisInstance`, 'redis', 'constructor');
     }
 
     private static init() {
@@ -22,15 +21,19 @@ export class RedisInstance {
         });
 
         RedisInstance.instance.on('connecting', () => {
-            logger.info('Trying to connect to Redis...');
+            logger.info('Trying to connect to Redis...', 'redis', 'connecting', ForegroundColor.Green);
         })
 
         RedisInstance.instance.on('connect', () => {
-            logger.info(`Redis client is connected to Redis`);
+            logger.info(`Redis client is connected to Redis`, 'redis', 'connect', ForegroundColor.Green);
         })
 
         RedisInstance.instance.on('close', () => {
-            logger.info(`Redis client has disconnected from Redis`);
+            logger.warn(`Redis client has disconnected from Redis`, 'redis', 'close', ForegroundColor.Yellow);
+        })
+
+        RedisInstance.instance.on('error', (err) => {
+            logger.error(err, 'redis', 'error', ForegroundColor.Red);
         })
     }
 

@@ -1,4 +1,3 @@
-import pino from "pino";
 import { Device } from "../device";
 import { Helper } from "../../helper";
 import { UplinkMessageTtn } from "../../ttn/uplinkMessageTtn";
@@ -9,13 +8,12 @@ import { Type } from "../../../enums/type";
 import { Action } from "../../../enums/action";
 import mqtt from "mqtt";
 import config from "../../../../config/config.json";
+import { Logger } from "../../logger/logger";
 
 
 // import { Downlink, DownlinkMessageTtn } from "../../ttn/downlinkMessageTtn";
 
-const logger = pino({
-    level: 'debug'
-});
+const logger = new Logger();
 
 export class UpDevice extends Device  {
     public async execute() {

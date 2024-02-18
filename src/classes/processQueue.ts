@@ -1,9 +1,7 @@
-import pino from "pino";
+import { Logger } from "./logger/logger";
 import { Task } from "./task";
 
-const logger = pino({
-    level: 'debug'
-});
+const logger = new Logger();
 
 export class ProcessQueue {
     private _queue: Task[] = [];
