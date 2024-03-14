@@ -1,6 +1,9 @@
+import { Logger } from '../classes/logger/logger';
 import { ResponseMessage } from '../classes/responseMessage';
 import { RedisInstance } from '../classes/singletons/redisInstance';
 import { Request, Response } from 'express';
+
+const logger = new Logger();
 
 export class Message {
     id: string = "";
@@ -37,6 +40,8 @@ const addMessage = async (req: Request, res: Response) => {
 
         RedisInstance.getInstance().set(message.id, JSON.stringify({messages: messages}));
     }
+
+    logger.debug(message, 'message', 'added');
 
     res.send('Message has been added to queue');
 }

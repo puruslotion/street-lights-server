@@ -6,8 +6,7 @@ const logger = new Logger();
 
 export class DownDevice extends Device  {
     public async execute() {
-        logger.debug('DownDevice execute()');
-        logger.debug(`Topic: ${this._topic}`);
-        logger.debug(`Action: ${this._mqttInfo.action}`);
+        logger.debug(`${this._topic}`, 'downdevice', 'topic');
+        logger.debug(`${this._mqttInfo.action}`, 'downdevice', 'action');
     }
 }

@@ -5,8 +5,7 @@ const logger = new Logger();
 
 export class LocationDevice extends Device  {
     public async execute() {
-        logger.debug('LocationDevice execute()');
-        logger.debug(`Topic: ${this._topic}`);
-        logger.debug(`Action: ${this._mqttInfo.action}`);
+        logger.debug(`${this._topic}`, 'locationdevice', 'topic');
+        logger.debug(`${this._mqttInfo.action}`, 'locationdevice', 'action');
     }
 }

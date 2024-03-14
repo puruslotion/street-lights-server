@@ -49,35 +49,12 @@ export class MqttInstance {
                 MqttInstance._processQueue.addTask(new Task(topic, payload, packet));
             })
 
+            mqttClient.on('packetsend', (packet) => {
+                logger.debug(packet, 'mqtt', 'packetsend')
+            })
+
             MqttInstance._mqttClientMap.set(application.id, mqttClient);
         })
-
-        // const brokerUrl = config.mqtt.brokerUrl
-
-        // MqttInstance._instance = mqtt.connect(brokerUrl, {
-        //     username: config.mqtt.username,
-        //     password: config.mqtt.password
-        // })
-
-        // MqttInstance._instance.on('connect', () => {
-        //     logger.info(`Connected to MQTT broker with address: ${brokerUrl}`, 'mqtt', 'connect', ForegroundColor.Green);
-        //     MqttInstance._instance.subscribe('#')
-        //     logger.info(`Subscribed to all topics using: #`, 'mqtt', 'subscribe', ForegroundColor.Green);
-        // })
-
-        // MqttInstance._instance.on('disconnect', (ev) => {
-        //     logger.warn(`Disconnected from broker: ${ev}`, 'mqtt', 'disconnect', ForegroundColor.Yellow);
-        // })
-
-        // MqttInstance._instance.on('error', (err) => {
-        //     logger.error(`Error: ${err}`, 'mqtt', 'error', ForegroundColor.Red);
-        // })
-
-        // MqttInstance._instance.on('message', (topic, payload, packet) => {
-        //     // this is where all the incoming message are handled
-        //     logger.debug(topic, 'mqtt', 'topic', ForegroundColor.Green);
-        //     MqttInstance._processQueue.addTask(new Task(topic, payload, packet));
-        // })
     }
 
     public static getInstance() {
@@ -90,7 +67,19 @@ export class MqttInstance {
         return MqttInstance._instance;
     }
 
-    public publish(mqttClientUsername: string, topic: string, message: string) {
-        MqttInstance._mqttClientMap.get(mqttClientUsername)?.publish(topic, message);
+    public static publish(applicationId: string, topic: string, message: string) {
+        if (!MqttInstance._mqttClientMap.has(applicationId)) {
+            logger.error(`there is no mqtt client with applicationId ${applicationId}`, 'mqtt', 'publish')
+        }
+        logger.info(`applicationId: ${applicationId}, topic: ${topic}, message: ${message}`, 'mqtt', 'publish');
+        MqttInstance._mqttClientMap?.get(applicationId)?.publish(topic, message, (error) => {
+            if (error) {
+                logger.error(error, 'mqtt', 'publish');
+                return;
+            }
+
+            logger.info('successfully published to broker', 'mqtt', 'publish');
+        });
     }
 }
+ 

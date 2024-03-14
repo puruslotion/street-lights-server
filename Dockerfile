@@ -14,3 +14,4 @@ COPY --from=build-stage /app/config /app/config
 
 CMD ["npm", "start"]
 
+
