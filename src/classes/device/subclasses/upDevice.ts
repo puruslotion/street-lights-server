@@ -9,6 +9,7 @@ import { Action } from "../../../enums/action";
 import mqtt from "mqtt";
 import config from "../../../../config/config.json";
 import { Logger } from "../../logger/logger";
+import { Message } from "../../../controllers/message.controller";
 
 
 // import { Downlink, DownlinkMessageTtn } from "../../ttn/downlinkMessageTtn";
@@ -38,7 +39,7 @@ export class UpDevice extends Device  {
 
         if (!result) return;
 
-        const messages = JSON.parse(result).messages as string[];
+        const messages = JSON.parse(result).messages as Message[];
         const message = messages.shift();
 
         const downlinkMessage = new DownlinkMessageTtn("");
@@ -46,12 +47,12 @@ export class UpDevice extends Device  {
         downlink.confirmed = false;
         downlink.priority = 'HIGH';
         downlink.fPort = 10;
-        downlink.frmPayload = Helper.stringToBase64(message ?? 'no content');
+        downlink.frmPayload = Helper.stringToBase64(message?.payload ?? 'no content');
         downlinkMessage.downlinks.push(downlink);
 
         logger.info(result);
 
-        MqttInstance.getInstance().publish(`v3/abddef41-fd8e-4aac-bbde-f958cc09eb00@ttn/devices/${this._mqttInfo.endDeviceId}/down/push`,JSON.stringify(downlinkMessage));
+        MqttInstance.getInstance().publish(message?.id!, `v3/${message?.applicationId}@ttn/devices/${this._mqttInfo.endDeviceId}/down/push`,JSON.stringify(downlinkMessage));
 
         if (messages.length === 0) {
             const res = await RedisInstance.getInstance().del(this._mqttInfo.endDeviceId);

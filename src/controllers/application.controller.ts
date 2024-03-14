@@ -5,10 +5,12 @@ import { Request, Response } from 'express';
 
 const logger = new Logger();
 
-class Application {
+export class Application {
     public id: string = "";
     public name?: string;
     public description?: string;
+    public token = "";
+    public mqttBrokerUrl: string = "";
 }
 
 const addApplication = async (req: Request, res: Response) => {
@@ -21,6 +23,15 @@ const addApplication = async (req: Request, res: Response) => {
 
         if (!application.name) {
             return res.status(400).send(new ResponseMessage('Name cannot be empty', 400));
+        }
+
+        // this needs to be encrypted
+        if (!application.token) {
+            return res.status(400).send(new ResponseMessage('Token cannot be empty', 400));
+        }
+
+        if (!application.mqttBrokerUrl) {
+            return res.status(400).send(new ResponseMessage('MQTT broker url cannot be empty', 400));
         }
 
         const findResult = await MongoClientInstance.getCollection(Collection.APPLICATIONS).findOne({ id: application.id });
@@ -45,7 +56,17 @@ const addApplication = async (req: Request, res: Response) => {
 const getAllApplications = async (req: Request, res: Response) => {
     try {
         const applications = await MongoClientInstance.getCollection(Collection.APPLICATIONS).find({}).toArray();
-        return res.status(200).send(new ResponseMessage('Retrieved all application ids from database', 200, applications));
+        
+        const applicationArr = applications.map((value) => {
+            const app = value as unknown as Application;
+
+            // removing password so it is not exposed
+            app.token = "";
+
+            return app;
+        })
+
+        return res.status(200).send(new ResponseMessage('Retrieved all application ids from database', 200, applicationArr));
     } catch (error) {
         logger.error(error, 'api', 'getallapplications');
         return res.status(500).send(new ResponseMessage('Internal server error', 500, error));
@@ -74,6 +95,14 @@ const updateApplicationById = async (req: Request, res: Response) => {
 
         if (application.description) {
             updateFields = { ...updateFields, description: application.description };
+        }
+
+        if (application.token) {
+            updateFields = { ...updateFields, description: application.token };
+        }
+
+        if (application.mqttBrokerUrl) {
+            updateFields = { ...updateFields, description: application.mqttBrokerUrl };
         }
 
         const filter = { id: application.id };
