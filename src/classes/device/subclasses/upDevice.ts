@@ -51,7 +51,7 @@ export class UpDevice extends Device  {
 
         logger.info(result);
 
-        MqttInstance.getInstance().publish('v3/abddef41-fd8e-4aac-bbde-f958cc09eb00@ttn/devices/eui-70b3d57ed006483d/down/push',JSON.stringify(downlinkMessage));
+        MqttInstance.getInstance().publish(`v3/abddef41-fd8e-4aac-bbde-f958cc09eb00@ttn/devices/${this._mqttInfo.endDeviceId}/down/push`,JSON.stringify(downlinkMessage));
 
         if (messages.length === 0) {
             const res = await RedisInstance.getInstance().del(this._mqttInfo.endDeviceId);

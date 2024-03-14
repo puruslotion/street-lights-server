@@ -39,6 +39,7 @@ export class MqttInstance {
 
         MqttInstance.instance.on('message', (topic, payload, packet) => {
             // this is where all the incoming message are handled
+            logger.debug(topic, 'mqtt', 'topic', ForegroundColor.Green);
             MqttInstance.processQueue.addTask(new Task(topic, payload, packet));
         })
     }

@@ -11,9 +11,9 @@ import { MqttInstance } from "./singletons/mqttInstance";
 import { routes } from "../routes/routes";
 import { Level, Logger } from "./logger/logger";
 import { ForegroundColor } from "../enums/foregroundColor";
+import { MongoClientInstance } from "./singletons/mongoClientInstance";
 
 const logger = new Logger();
-Logger.setLevel(Level.DEB);
 
 export class App {
     public async run() {
@@ -22,6 +22,9 @@ export class App {
 
     private init() {
         this.showHeader();
+
+        // init MongoDb
+        MongoClientInstance.getInstance();
         
         // init Redis
         RedisInstance.getInstance();
@@ -36,7 +39,9 @@ export class App {
         server.use(express.json());
         server.use('/api/v1', routes)
 
-        server.listen(3000);
+        server.listen(3000, () => {
+            logger.info(3000, 'server', 'port');
+        });
     }
 
     private showHeader() {
