@@ -27,11 +27,11 @@ export class Application {
             this.description = json.description;
         }
 
-        if (this.validateProperty(json.token, PropertyType.STRING, 'token')) {
+        if (this.validateProperty(json?.token, PropertyType.STRING, 'token')) {
             this.token = json.token;
         }
 
-        if (this.validateProperty(json.mqttBrokerUrl, PropertyType.STRING, 'mqttBrokerUrl')) {
+        if (this.validateProperty(json?.mqttBrokerUrl, PropertyType.STRING, 'mqttBrokerUrl')) {
             this.mqttBrokerUrl = json.mqttBrokerUrl;
         }
     }
@@ -139,11 +139,11 @@ const updateApplicationById = async (req: Request, res: Response) => {
         }
 
         if (application.token) {
-            updateFields = { ...updateFields, description: application.token };
+            updateFields = { ...updateFields, token: application.token };
         }
 
         if (application.mqttBrokerUrl) {
-            updateFields = { ...updateFields, description: application.mqttBrokerUrl };
+            updateFields = { ...updateFields, mqttBrokerUrl: application.mqttBrokerUrl };
         }
 
         const filter = { id: application.id };
