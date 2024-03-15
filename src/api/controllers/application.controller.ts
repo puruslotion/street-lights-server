@@ -2,6 +2,8 @@ import { Logger } from "../../classes/logger/logger";
 import { ResponseMessage } from "../../classes/responseMessage";
 import { Collection, MongoClientInstance } from "../../classes/singletons/mongoClientInstance";
 import { Request, Response } from 'express';
+import { PropertyType } from "../../enums/propertyType";
+import { Helper } from "../../classes/helper";
 
 const logger = new Logger();
 
@@ -11,13 +13,46 @@ export class Application {
     public description?: string;
     public token = "";
     public mqttBrokerUrl: string = "";
+
+    constructor(json: any) {
+        if (this.validateProperty(json?.id, PropertyType.STRING, 'id')) {
+            this.id = json.id;
+        }
+
+        if (this.validateProperty(json?.name, PropertyType.STRING, 'name')) {
+            this.name = json.name;
+        }
+
+        if (this.validateProperty(json?.description, PropertyType.STRING, 'description')) {
+            this.description = json.description;
+        }
+
+        if (this.validateProperty(json.token, PropertyType.STRING, 'token')) {
+            this.token = json.token;
+        }
+
+        if (this.validateProperty(json.mqttBrokerUrl, PropertyType.STRING, 'mqttBrokerUrl')) {
+            this.mqttBrokerUrl = json.mqttBrokerUrl;
+        }
+    }
+    
+    private validateProperty(input: any, type: string, name: string) {
+        if (input && typeof input !== type) {
+            throw new Error(`${name} must be of type ${type}`);
+        } else if (!input) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // POST
 const createApplication = async (req: Request, res: Response) => {
     try {
-        const application: Application = req.body;
-
+        const application = new Application(req.body);
+        application.id = Helper.sanitize(application.id);
+        
         if (!application.id) {
             return res.status(400).send(new ResponseMessage('ID cannot be empty', 400));
         }
@@ -48,9 +83,10 @@ const createApplication = async (req: Request, res: Response) => {
         }
 
         return res.status(201).send(new ResponseMessage('Application created successfully', 201));
-    } catch (error) {
-        logger.error(error, 'api', 'create_application');
-        return res.status(500).send(new ResponseMessage('Internal server error', 500, error));
+    } catch (error: any) {
+        const err = Helper.parseError(error)
+        logger.error(err, 'api', 'create_application');
+        return res.status(500).send(new ResponseMessage(err, 500));
     }
 };
 
@@ -60,7 +96,7 @@ const readAllApplications = async (req: Request, res: Response) => {
         const applications = await MongoClientInstance.getInstance().getCollection(Collection.APPLICATIONS).find({}).toArray();
         
         const applicationArr = applications.map((value) => {
-            const app = value as unknown as Application;
+            const app = new Application(value);
 
             // removing password so it is not exposed
             app.token = "";
@@ -69,16 +105,18 @@ const readAllApplications = async (req: Request, res: Response) => {
         })
 
         return res.status(200).send(new ResponseMessage('Retrieved all application ids from database', 200, applicationArr));
-    } catch (error) {
-        logger.error(error, 'api', 'read_all_applications');
-        return res.status(500).send(new ResponseMessage('Internal server error', 500, error));
+    } catch (error: any) {
+        const err = Helper.parseError(error)
+        logger.error(err, 'api', 'read_all_applications');
+        return res.status(500).send(new ResponseMessage(err, 500));
     }
 }
 
 // PATCH
 const updateApplicationById = async (req: Request, res: Response) => {
     try {
-        const application: Application = req.body;
+        const application: Application = new Application(req.body);
+        application.id = Helper.sanitize(application.id);
 
         if (!application.id) {
             return res.status(400).send(new ResponseMessage('ID cannot be empty', 400));
@@ -119,9 +157,10 @@ const updateApplicationById = async (req: Request, res: Response) => {
 
         return res.status(200).send(new ResponseMessage('Application updated successfully', 200));
 
-    } catch (error) {
-        logger.error(`Internal server error: ${error}`, 'api', 'update_application_by_id');
-        return res.status(500).send(new ResponseMessage('Internal server error', 500, error));
+    } catch (error: any) {
+        const err = Helper.parseError(error)
+        logger.error(`${err}`, 'api', 'update_application_by_id');
+        return res.status(500).send(new ResponseMessage(err, 500));
     }
 };
 

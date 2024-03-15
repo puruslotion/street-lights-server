@@ -1,17 +1,35 @@
 import { Level, Logger } from "../../classes/logger/logger";
 import { Request, Response } from 'express';
 import { ResponseMessage } from "../../classes/responseMessage";
+import { PropertyType } from "../../enums/propertyType";
+import { Helper } from "../../classes/helper";
 
 const logger = new Logger();
 
 class LogLevel {
-    public level = 0;
+    public level: number = 0;
+
+    constructor(json: any) {
+        if (this.validateProperty(json?.level, PropertyType.NUMBER, 'level')) {
+            this.level = json.level;
+        }
+    }
+
+    private validateProperty(input: any, type: string, name: string) {
+        if (input && typeof input !== type) {
+            throw new Error(`${name} must be of type ${type}`);
+        } else if (!input) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // PATCH
 const updateLevel = async (req: Request, res: Response) => {
     try {
-        const logLevel: LogLevel = req.body;
+        const logLevel = new LogLevel(req.body);
 
         switch (logLevel.level) {
             case Level.DEB: Logger.setLevel(Level.DEB);
@@ -30,10 +48,10 @@ const updateLevel = async (req: Request, res: Response) => {
     
         res.status(200).send(new ResponseMessage(`log level has been changed to ${logLevel.level}`, 200));
     } catch (error) {
-        logger.error(error, 'api', 'update_level');
-        res.status(500).send(new ResponseMessage(`Internal server error: ${error}`, 500));
+        const err = Helper.parseError(error)
+        logger.error(err, 'api', 'update_level');
+        res.status(500).send(new ResponseMessage(`${err}`, 500));
     }
-   
 }
 
 export { updateLevel }

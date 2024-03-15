@@ -3,18 +3,41 @@ import { ResponseMessage } from '../../classes/responseMessage';
 import { RedisInstance } from '../../classes/singletons/redisInstance';
 import { Request, Response } from 'express';
 import { REDIS_KEY } from '../../enums/redisKey';
+import { PropertyType } from '../../enums/propertyType';
+import { Helper } from '../../classes/helper';
 
 const logger = new Logger();
 
 export class Message {
     id: string = "";
     payload: string = "";
+
+    constructor(json: any){
+        if (this.validateProperty(json?.id, PropertyType.STRING, 'id')) {
+            this.id = json.id;
+        }
+
+        if (this.validateProperty(json?.payload, PropertyType.STRING, 'payload')) {
+            this.payload = json.payload;
+        }
+    }
+
+    private validateProperty(input: any, type: string, name: string) {
+        if (input && typeof input !== type) {
+            throw new Error(`${name} must be of type ${type}`);
+        } else if (!input) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // POST
 const createMessage = async (req: Request, res: Response) => {
     try {
-        const message: Message = req.body;
+        const message = new Message(req.body);
+        message.id = Helper.sanitize(message.id);
 
         if (!message.id) {
             return res.status(400).send(new ResponseMessage('ID cannot be empty', 400));
@@ -50,9 +73,10 @@ const createMessage = async (req: Request, res: Response) => {
         logger.debug(message, 'api', 'create_message');
 
         res.status(200).send(new ResponseMessage('Message has been added to queue', 200));
-    } catch (error) {
-        logger.error(error, 'api', 'create_message');
-        res.status(500).send(new ResponseMessage(`Internal server error: ${error}`, 500));
+    } catch (error: any) {
+        const err = Helper.parseError(error)
+        logger.error(err, 'api', 'create_message');
+        res.status(500).send(new ResponseMessage(`${err}`, 500));
     }
 }
 

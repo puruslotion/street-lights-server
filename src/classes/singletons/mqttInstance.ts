@@ -22,7 +22,7 @@ export class MqttInstance {
         const applicationArr = await MongoClientInstance.getInstance().getCollection(Collection.APPLICATIONS).find({}).toArray();
 
         applicationArr.forEach((value) => {
-            const application = value as unknown as Application;
+            const application = new Application(value);
             
             const mqttClient = mqtt.connect(application.mqttBrokerUrl, {
                 username: application.id,

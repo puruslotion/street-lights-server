@@ -20,4 +20,20 @@ export class Helper {
         // Step 2: Convert byte array to base64
         return btoa(String.fromCharCode(...new Uint8Array(byteArray)));
     }
+
+    static sanitize(str: string): string {
+        return str.replace(/[\$\{\}]/g, '');
+    }
+
+    static parseError(error: any){
+        const serializedError = JSON.stringify(error,
+            Object.getOwnPropertyNames(error)
+        );
+
+        const deserializedError = Object.assign(new Error(),
+            JSON.parse(serializedError)
+        );
+
+        return deserializedError;
+    }
 }
