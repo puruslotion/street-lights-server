@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { createMessage } from "../controllers/message.controller";
+import { Router } from 'express';
+import { createMessage } from '../controllers/message.controller';
 
-export const messageRoute = Router()
+export const messageRoute = Router();
 
-messageRoute.post('/add', createMessage)
+messageRoute.post('/add', createMessage);

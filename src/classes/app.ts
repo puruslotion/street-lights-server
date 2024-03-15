@@ -1,71 +1,89 @@
-import { DownDevice } from "./device/subclasses/downDevice";
-import { JoinDevice } from "./device/subclasses/joinDevice";
-import { LocationDevice } from "./device/subclasses/locationDevice";
-import { ServiceDevice } from "./device/subclasses/serviceDevice";
-import { EndDevice, UpDevice } from "./device/subclasses/upDevice";
-import { DeviceFactory } from "./factories/deviceFactory";
-import { Type } from "../enums/type";
-import { RedisInstance } from "./singletons/redisInstance";
-import express from "express";
-import { MqttInstance } from "./singletons/mqttInstance";
-import { routes } from "../api/routes/routes";
-import { Logger } from "./logger/logger";
-import { ForegroundColor } from "../enums/foregroundColor";
-import { Collection, MongoClientInstance } from "./singletons/mongoClientInstance";
-import { REDIS_KEY } from "../enums/redisKey";
+import { DownDevice } from './device/subclasses/downDevice';
+import { JoinDevice } from './device/subclasses/joinDevice';
+import { LocationDevice } from './device/subclasses/locationDevice';
+import { ServiceDevice } from './device/subclasses/serviceDevice';
+import { EndDevice, UpDevice } from './device/subclasses/upDevice';
+import { DeviceFactory } from './factories/deviceFactory';
+import { Type } from '../enums/type';
+import { RedisInstance } from './singletons/redisInstance';
+import express from 'express';
+import { MqttInstance } from './singletons/mqttInstance';
+import { routes } from '../api/routes/routes';
+import { Logger } from './logger/logger';
+import { ForegroundColor } from '../enums/foregroundColor';
+import {
+	Collection,
+	MongoClientInstance,
+} from './singletons/mongoClientInstance';
+import { REDIS_KEY } from '../enums/redisKey';
 
 const logger = new Logger();
 
 export class App {
-    public async run() {
-        await this.init();
-    }
+	public async run() {
+		await this.init();
+	}
 
-    private async init() {
-        this.showHeader();
+	private async init() {
+		this.showHeader();
 
-        // init MongoDb
-        await MongoClientInstance.getInstance().init();
-    
-        // // init Redis
-        await RedisInstance.getInstance().init();
+		// init MongoDb
+		await MongoClientInstance.getInstance().init();
 
-        // adding end devices to redis
-        (await MongoClientInstance.getInstance().getCollection(Collection.END_DEVICES).find({}).toArray()).forEach((value) => {
-            const endDevice = value as unknown as EndDevice;
+		// // init Redis
+		await RedisInstance.getInstance().init();
 
-            RedisInstance.getInstance().redis().set(`${REDIS_KEY.END_DEVICE}${endDevice.id}`, JSON.stringify(endDevice));
-        })
+		// adding end devices to redis
+		(
+			await MongoClientInstance.getInstance()
+				.getCollection(Collection.END_DEVICES)
+				.find({})
+				.toArray()
+		).forEach((value) => {
+			const endDevice = value as unknown as EndDevice;
 
-        // init Mqtt
-        MqttInstance.getInstance();
+			RedisInstance.getInstance()
+				.redis()
+				.set(
+					`${REDIS_KEY.END_DEVICE}${endDevice.id}`,
+					JSON.stringify(endDevice),
+				);
+		});
 
-        // order does matter
-        this.initDeviceFactory();
+		// init Mqtt
+		MqttInstance.getInstance();
 
-        const server = express();
-        server.use(express.json());
-        server.use('/api/v1', routes)
+		// order does matter
+		this.initDeviceFactory();
 
-        server.listen(3000, () => {
-            logger.info(3000, 'server', 'port');
-        });
-    }
+		const server = express();
+		server.use(express.json());
+		server.use('/api/v1', routes);
 
-    private showHeader() {
-        logger.info('============================'.yellow().reset());
-        logger.info('Starting StreetLights Server'.yellow().reset());
-        logger.info('============================'.yellow().reset());
-        logger.info('');
-    }
+		server.listen(3000, () => {
+			logger.info(3000, 'server', 'port');
+		});
+	}
 
-    private initDeviceFactory() {
-        logger.info('Initializing DeviceFactory 🏭', 'app', 'initDeviceFactory', ForegroundColor.Cyan);
+	private showHeader() {
+		logger.info('============================'.yellow().reset());
+		logger.info('Starting StreetLights Server'.yellow().reset());
+		logger.info('============================'.yellow().reset());
+		logger.info('');
+	}
 
-        DeviceFactory.registerDevice(Type.JOIN, () => new JoinDevice());
-        DeviceFactory.registerDevice(Type.UP, () => new UpDevice());
-        DeviceFactory.registerDevice(Type.DOWN, () => new DownDevice());
-        DeviceFactory.registerDevice(Type.SERVICE, () => new ServiceDevice());
-        DeviceFactory.registerDevice(Type.LOCATION, () => new LocationDevice());
-    }
+	private initDeviceFactory() {
+		logger.info(
+			'Initializing DeviceFactory 🏭',
+			'app',
+			'initDeviceFactory',
+			ForegroundColor.Cyan,
+		);
+
+		DeviceFactory.registerDevice(Type.JOIN, () => new JoinDevice());
+		DeviceFactory.registerDevice(Type.UP, () => new UpDevice());
+		DeviceFactory.registerDevice(Type.DOWN, () => new DownDevice());
+		DeviceFactory.registerDevice(Type.SERVICE, () => new ServiceDevice());
+		DeviceFactory.registerDevice(Type.LOCATION, () => new LocationDevice());
+	}
 }

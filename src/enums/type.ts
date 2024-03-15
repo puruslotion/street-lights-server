@@ -1,7 +1,7 @@
 export enum Type {
-    JOIN = 'join',
-    UP = 'up',
-    DOWN = 'down',
-    SERVICE = 'service',
-    LOCATION = 'location'
+	JOIN = 'join',
+	UP = 'up',
+	DOWN = 'down',
+	SERVICE = 'service',
+	LOCATION = 'location',
 }

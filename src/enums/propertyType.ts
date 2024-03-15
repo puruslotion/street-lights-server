@@ -1,5 +1,5 @@
 export enum PropertyType {
-    STRING = 'string',
-    NUMBER = 'number',
-    BOOLEAN = 'boolean'
+	STRING = 'string',
+	NUMBER = 'number',
+	BOOLEAN = 'boolean',
 }

@@ -1,39 +1,42 @@
 export class Helper {
-    static bytesToString(bytes: Buffer) {
-        const decoder = new TextDecoder('utf-8');
-        return decoder.decode(new Uint8Array(bytes));
-    }
-    
-    static base64ToUint8Array(base64: string): Uint8Array {
-        // Decode base64 string to a Buffer
-        const buffer = Buffer.from(base64, 'base64');
-    
-        // Convert the Buffer to a Uint8Array
-        return new Uint8Array(buffer);
-    }
-    
-    static stringToBase64(str: string): string {
-        // Step 1: Convert string to byte array
-        const encoder = new TextEncoder();
-        const byteArray = encoder.encode(str);
-    
-        // Step 2: Convert byte array to base64
-        return btoa(String.fromCharCode(...new Uint8Array(byteArray)));
-    }
+	static bytesToString(bytes: Buffer) {
+		const decoder = new TextDecoder('utf-8');
+		return decoder.decode(new Uint8Array(bytes));
+	}
 
-    static sanitize(str: string): string {
-        return str.replace(/[\$\{\}]/g, '');
-    }
+	static base64ToUint8Array(base64: string): Uint8Array {
+		// Decode base64 string to a Buffer
+		const buffer = Buffer.from(base64, 'base64');
 
-    static parseError(error: any){
-        const serializedError = JSON.stringify(error,
-            Object.getOwnPropertyNames(error)
-        );
+		// Convert the Buffer to a Uint8Array
+		return new Uint8Array(buffer);
+	}
 
-        const deserializedError = Object.assign(new Error(),
-            JSON.parse(serializedError)
-        );
+	static stringToBase64(str: string): string {
+		// Step 1: Convert string to byte array
+		const encoder = new TextEncoder();
+		const byteArray = encoder.encode(str);
 
-        return deserializedError;
-    }
+		// Step 2: Convert byte array to base64
+		return btoa(String.fromCharCode(...new Uint8Array(byteArray)));
+	}
+
+	static sanitize(str: string): string {
+		return str.replace(/[${}]/g, '');
+	}
+
+	// eslint-disable-next-line
+	static parseError(error: any) {
+		const serializedError = JSON.stringify(
+			error,
+			Object.getOwnPropertyNames(error),
+		);
+
+		const deserializedError = Object.assign(
+			new Error(),
+			JSON.parse(serializedError),
+		);
+
+		return deserializedError;
+	}
 }
