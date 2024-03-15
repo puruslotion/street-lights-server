@@ -5,7 +5,7 @@ import { Task } from '../task';
 import { Logger } from '../logger/logger';
 import { ForegroundColor } from "../../enums/foregroundColor";
 import { Collection, MongoClientInstance } from "./mongoClientInstance";
-import { Application } from "../../controllers/application.controller";
+import { Application } from "../../api/controllers/application.controller";
 
 const logger = new Logger();
 

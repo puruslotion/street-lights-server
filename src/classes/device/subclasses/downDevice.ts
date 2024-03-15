@@ -1,5 +1,6 @@
 // import pino from "pino";
-import { Message } from "../../../controllers/message.controller";
+import { Message } from "../../../api/controllers/message.controller";
+import { Action } from "../../../enums/action";
 import { BackgroundColor } from "../../../enums/backgroundColor";
 import { REDIS_KEY } from "../../../enums/redisKey";
 import { Logger } from "../../logger/logger";
@@ -13,8 +14,8 @@ export class DownDevice extends Device  {
         logger.debug(`${this._topic}`, 'downdevice', 'topic');
         logger.debug(`${this._mqttInfo.action}`, 'downdevice', 'action');
 
-        if (this._mqttInfo.action.toLowerCase() === 'ack') {
-            logger.info('Remove message from Redis queue!!'.red().reset(), 'downdevice', 'ack');
+        if (this._mqttInfo.action.toLowerCase() === Action.ACK) {
+            logger.info('Remove message from Redis queue!!'.red().reset(), 'downdevice', Action.ACK);
 
             await this.removeFromRedisQueue();
         }

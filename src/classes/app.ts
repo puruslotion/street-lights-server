@@ -8,7 +8,7 @@ import { Type } from "../enums/type";
 import { RedisInstance } from "./singletons/redisInstance";
 import express from "express";
 import { MqttInstance } from "./singletons/mqttInstance";
-import { routes } from "../routes/routes";
+import { routes } from "../api/routes/routes";
 import { Level, Logger } from "./logger/logger";
 import { ForegroundColor } from "../enums/foregroundColor";
 import { MongoClientInstance } from "./singletons/mongoClientInstance";

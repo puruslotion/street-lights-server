@@ -5,7 +5,7 @@ import { RedisInstance } from "../../singletons/redisInstance";
 import { Downlink, DownlinkMessageTtn } from "../../ttn/downlinkMessageTtn";
 import { MqttInstance } from "../../singletons/mqttInstance";
 import { Logger } from "../../logger/logger";
-import { Message } from "../../../controllers/message.controller";
+import { Message } from "../../../api/controllers/message.controller";
 import { REDIS_KEY } from "../../../enums/redisKey";
 import { Collection, MongoClientInstance } from "../../singletons/mongoClientInstance";
 import { BackgroundColor } from "../../../enums/backgroundColor";
@@ -27,11 +27,16 @@ export class UpDevice extends Device  {
 
         logger.debug(`${uplinkMessageTtn.uplinkMessage.frmPayload}`, 'updevice', 'message');
 
-        await this.checkIfEndDeviceInDb();
         await this.checkingIfDownlinkMessageShouldBeSent();
+        this.checkIfEndDeviceInDb();
     }
 
     private async shouldAddToRedis(endDevice: object) {
+        const redisKey = `${REDIS_KEY.END_DEVICE}${this._mqttInfo.endDeviceId}`;
+        const result = await RedisInstance.getInstance().get(redisKey);
+
+        if (result) return;
+
         const res = await RedisInstance.getInstance().set(`${REDIS_KEY.END_DEVICE}${this._mqttInfo.endDeviceId}`, JSON.stringify(endDevice));
 
         if (res) {
@@ -42,13 +47,6 @@ export class UpDevice extends Device  {
     }
 
     private async checkIfEndDeviceInDb() {
-        const redisKey = `${REDIS_KEY.END_DEVICE}${this._mqttInfo.endDeviceId}`;
-        const result = await RedisInstance.getInstance().get(redisKey);
-
-        if (result) return;
-
-        logger.info(`end device with id ${this._mqttInfo.endDeviceId.cyan().reset()} is not in Redis`, 'redis', 'get');
-
         const findResult = await MongoClientInstance.getCollection(Collection.END_DEVICES).findOne({id: this._mqttInfo.endDeviceId});
         const endDevice = {
             id: this._mqttInfo.endDeviceId,
@@ -56,6 +54,8 @@ export class UpDevice extends Device  {
         }
 
         if (findResult?._id) {
+            const lastSeen = Date.now();
+            await MongoClientInstance.getCollection(Collection.END_DEVICES).updateOne({id: this._mqttInfo.endDeviceId}, {$set: {lastSeen: lastSeen}});
             await this.shouldAddToRedis(endDevice);
             return;
         }

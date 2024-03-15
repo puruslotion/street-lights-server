@@ -1,8 +1,8 @@
-import { Logger } from '../classes/logger/logger';
-import { ResponseMessage } from '../classes/responseMessage';
-import { RedisInstance } from '../classes/singletons/redisInstance';
+import { Logger } from '../../classes/logger/logger';
+import { ResponseMessage } from '../../classes/responseMessage';
+import { RedisInstance } from '../../classes/singletons/redisInstance';
 import { Request, Response } from 'express';
-import { REDIS_KEY } from '../enums/redisKey';
+import { REDIS_KEY } from '../../enums/redisKey';
 
 const logger = new Logger();
 

@@ -1,6 +1,6 @@
-import { Logger } from "../classes/logger/logger";
-import { ResponseMessage } from "../classes/responseMessage";
-import { Collection, MongoClientInstance } from "../classes/singletons/mongoClientInstance";
+import { Logger } from "../../classes/logger/logger";
+import { ResponseMessage } from "../../classes/responseMessage";
+import { Collection, MongoClientInstance } from "../../classes/singletons/mongoClientInstance";
 import { Request, Response } from 'express';
 
 const logger = new Logger();
