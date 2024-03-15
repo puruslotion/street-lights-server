@@ -19,7 +19,7 @@ export class MqttInstance {
     }
 
     private static async init() {
-        const applicationArr = await MongoClientInstance.getCollection(Collection.APPLICATIONS).find({}).toArray();
+        const applicationArr = await MongoClientInstance.getInstance().getCollection(Collection.APPLICATIONS).find({}).toArray();
 
         applicationArr.forEach((value) => {
             const application = value as unknown as Application;
@@ -59,6 +59,7 @@ export class MqttInstance {
 
     public static getInstance() {
         if (!MqttInstance._instance) {
+            MqttInstance._instance = new MqttInstance();
             MqttInstance._mqttClientMap = new Map();
             MqttInstance._processQueue = new ProcessQueue();
             MqttInstance.init();
@@ -67,7 +68,7 @@ export class MqttInstance {
         return MqttInstance._instance;
     }
 
-    public static publish(applicationId: string, topic: string, message: string) {
+    public publish(applicationId: string, topic: string, message: string) {
         if (!MqttInstance._mqttClientMap.has(applicationId)) {
             logger.error(`there is no mqtt client with applicationId ${applicationId}`, 'mqtt', 'publish')
         }

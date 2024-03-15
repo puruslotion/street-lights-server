@@ -6,4 +6,3 @@ export const applicationRoute = Router()
 applicationRoute.post('/add', createApplication);
 applicationRoute.get('/all', readAllApplications);
 applicationRoute.patch('/update', updateApplicationById);
-// messageRoute.get('/', getMessage)

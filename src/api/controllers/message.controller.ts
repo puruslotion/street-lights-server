@@ -24,28 +24,35 @@ const createMessage = async (req: Request, res: Response) => {
             return res.status(400).send(new ResponseMessage('Payload cannot be empty', 400));
         }
 
+        const redisEndDeviceKey = await (await RedisInstance.getInstance()).redis().get(`${REDIS_KEY.END_DEVICE}${message.id}`);
+
+        if (!redisEndDeviceKey) {
+            logger.error(`End device with id ${message.id.cyan().reset()} does not exist`, 'api', 'create_message')
+            return res.status(400).send(new ResponseMessage(`End device with id ${message.id} does not exist`, 400));
+        }
+
         const redisKey = `${REDIS_KEY.ADD_MESSAGE}${message.id}`
-        const result = await RedisInstance.getInstance().get(redisKey);
+        const result = await RedisInstance.getInstance().redis().get(redisKey);
 
         if (!result) {
             const messages: Message[] = []
             messages.push(message);
 
-            RedisInstance.getInstance().set(redisKey, JSON.stringify({messages: messages}));
+            RedisInstance.getInstance().redis().set(redisKey, JSON.stringify({messages: messages}));
         } else {
             const obj = JSON.parse(result);
             const messages = obj.messages as Message[];
             messages.push(message);
 
-            RedisInstance.getInstance().set(redisKey, JSON.stringify({messages: messages}));
+            RedisInstance.getInstance().redis().set(redisKey, JSON.stringify({messages: messages}));
         }
 
-        logger.debug(message, 'message', 'added');
+        logger.debug(message, 'api', 'create_message');
 
         res.status(200).send(new ResponseMessage('Message has been added to queue', 200));
     } catch (error) {
-        logger.error(error, 'api', 'addmessage');
-        res.status(200).send(new ResponseMessage(`Internal server error: ${error}`, 500));
+        logger.error(error, 'api', 'create_message');
+        res.status(500).send(new ResponseMessage(`Internal server error: ${error}`, 500));
     }
 }
 

@@ -11,11 +11,11 @@ const logger = new Logger();
 
 export class DownDevice extends Device  {
     public async execute() {
-        logger.debug(`${this._topic}`, 'downdevice', 'topic');
-        logger.debug(`${this._mqttInfo.action}`, 'downdevice', 'action');
+        logger.debug(`${this._topic}`, 'down_device', 'topic');
+        logger.debug(`${this._mqttInfo.action}`, 'down_device', 'action');
 
         if (this._mqttInfo.action.toLowerCase() === Action.ACK) {
-            logger.info('Remove message from Redis queue!!'.red().reset(), 'downdevice', Action.ACK);
+            logger.info('Remove message from Redis queue!!'.red().reset(), 'down_device', Action.ACK);
 
             await this.removeFromRedisQueue();
         }
@@ -23,19 +23,19 @@ export class DownDevice extends Device  {
 
     private async removeFromRedisQueue() {
         const redisKey = `${REDIS_KEY.ADD_MESSAGE}${this._mqttInfo.endDeviceId}`;
-        const result = await RedisInstance.getInstance().get(redisKey);
+        const result = await RedisInstance.getInstance().redis().get(redisKey);
 
         if (!result) return;
 
         const messages = JSON.parse(result).messages as Message[];
-        logger.debug(messages, 'redis', 'downdevice', BackgroundColor.Red);
+        logger.debug(messages, 'down_device', 'redis', BackgroundColor.Red);
 
         const message = messages.shift();
 
         if (!message) return;
 
         if (messages.length === 0) {
-            const res = await RedisInstance.getInstance().del(redisKey);
+            const res = await RedisInstance.getInstance().redis().del(redisKey);
 
             if (res === 1) {
                 logger.info(`Key ${redisKey} deleted successfully.`, 'redis', 'delete');
@@ -43,7 +43,7 @@ export class DownDevice extends Device  {
                 logger.info(`Key ${redisKey} does not exist.`, 'redis', 'delete');
             }
         } else {
-            RedisInstance.getInstance().set(redisKey, JSON.stringify({messages: messages}));
+            RedisInstance.getInstance().redis().set(redisKey, JSON.stringify({messages: messages}));
         }
     }
 }

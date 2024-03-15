@@ -1,47 +1,61 @@
-import Redis from 'ioredis';
+import Redis, { RedisKey } from 'ioredis';
 import config from '../../../config/config.json';
 import { Logger } from '../logger/logger';
 import { ForegroundColor } from '../../enums/foregroundColor';
+import { BackgroundColor } from '../../enums/backgroundColor';
 
 const logger = new Logger();
 
 export class RedisInstance {
-    private static instance: Redis;
+    private static _instance: RedisInstance;
+    private static _redis: Redis;
 
     private constructor() {
         logger.info(`Created a RedisInstance`, 'redis', 'constructor');
     }
 
-    private static init() {
-        RedisInstance.instance = new Redis({
-            host: config.redis.host,
-            port: config.redis.port,
-            username: config.redis.username,
-            password: config.redis.password
-        });
-
-        RedisInstance.instance.on('connecting', () => {
-            logger.info('Trying to connect to Redis...', 'redis', 'connecting', ForegroundColor.Green);
-        })
-
-        RedisInstance.instance.on('connect', () => {
-            logger.info(`Redis client is connected to Redis`, 'redis', 'connect', ForegroundColor.Green);
-        })
-
-        RedisInstance.instance.on('close', () => {
-            logger.warn(`Redis client has disconnected from Redis`, 'redis', 'close', ForegroundColor.Yellow);
-        })
-
-        RedisInstance.instance.on('error', (err) => {
-            logger.error(err, 'redis', 'error', ForegroundColor.Red);
+    public async init() {
+        return new Promise((resolve) => {
+            RedisInstance._redis = new Redis({
+                host: config.redis.host,
+                port: config.redis.port,
+                username: config.redis.username,
+                password: config.redis.password
+            });
+    
+            RedisInstance._redis.on('connecting', () => {
+                logger.info('Trying to connect to Redis...', 'redis', 'connecting', ForegroundColor.Green);
+            })
+    
+            RedisInstance._redis.on('connect', () => {
+                logger.info(`Redis client is connected to Redis`, 'redis', 'connect', BackgroundColor.Cyan);
+                resolve(true);
+            })
+    
+            RedisInstance._redis.on('close', () => {
+                logger.warn(`Redis client has disconnected from Redis`, 'redis', 'close', ForegroundColor.Yellow);
+            })
+    
+            RedisInstance._redis.on('error', (err) => {
+                logger.error(err, 'redis', 'error', ForegroundColor.Red);
+            })
         })
     }
 
     public static getInstance() {
-        if (!RedisInstance.instance) {
-            RedisInstance.init();
+        if (!RedisInstance._instance) {
+            RedisInstance._instance = new RedisInstance();
+            //RedisInstance.init();
         }
 
-        return RedisInstance.instance;
+        return RedisInstance._instance;
     }
+
+    public redis(){
+        return RedisInstance._redis;
+    }
+
+    // public async connect(){
+    //     return await RedisInstance._redis.connect();
+    // }
 }

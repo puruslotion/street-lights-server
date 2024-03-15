@@ -35,13 +35,13 @@ const createApplication = async (req: Request, res: Response) => {
             return res.status(400).send(new ResponseMessage('MQTT broker url cannot be empty', 400));
         }
 
-        const findResult = await MongoClientInstance.getCollection(Collection.APPLICATIONS).findOne({ id: application.id });
+        const findResult = await MongoClientInstance.getInstance().getCollection(Collection.APPLICATIONS).findOne({ id: application.id });
 
         if (findResult?._id) {
             return res.status(400).send(new ResponseMessage(`Object with ID ${application.id} already exists`, 400));
         }
 
-        const insertResult = await MongoClientInstance.getCollection(Collection.APPLICATIONS).insertOne(application);
+        const insertResult = await MongoClientInstance.getInstance().getCollection(Collection.APPLICATIONS).insertOne(application);
 
         if (!insertResult.acknowledged) {
             return res.status(400).send(new ResponseMessage('Could not insert data', 400, insertResult));
@@ -49,7 +49,7 @@ const createApplication = async (req: Request, res: Response) => {
 
         return res.status(201).send(new ResponseMessage('Application created successfully', 201));
     } catch (error) {
-        logger.error(error, 'api', 'addapplication');
+        logger.error(error, 'api', 'create_application');
         return res.status(500).send(new ResponseMessage('Internal server error', 500, error));
     }
 };
@@ -57,7 +57,7 @@ const createApplication = async (req: Request, res: Response) => {
 // GET
 const readAllApplications = async (req: Request, res: Response) => {
     try {
-        const applications = await MongoClientInstance.getCollection(Collection.APPLICATIONS).find({}).toArray();
+        const applications = await MongoClientInstance.getInstance().getCollection(Collection.APPLICATIONS).find({}).toArray();
         
         const applicationArr = applications.map((value) => {
             const app = value as unknown as Application;
@@ -70,7 +70,7 @@ const readAllApplications = async (req: Request, res: Response) => {
 
         return res.status(200).send(new ResponseMessage('Retrieved all application ids from database', 200, applicationArr));
     } catch (error) {
-        logger.error(error, 'api', 'getallapplications');
+        logger.error(error, 'api', 'read_all_applications');
         return res.status(500).send(new ResponseMessage('Internal server error', 500, error));
     }
 }
@@ -84,7 +84,7 @@ const updateApplicationById = async (req: Request, res: Response) => {
             return res.status(400).send(new ResponseMessage('ID cannot be empty', 400));
         }
 
-        const findResult = await MongoClientInstance.getCollection(Collection.APPLICATIONS).findOne({ id: application.id });
+        const findResult = await MongoClientInstance.getInstance().getCollection(Collection.APPLICATIONS).findOne({ id: application.id });
 
         if (!findResult?._id) {
             return res.status(404).send(new ResponseMessage(`Object with ID ${application.id} does not exist`, 404));
@@ -111,7 +111,7 @@ const updateApplicationById = async (req: Request, res: Response) => {
         const filter = { id: application.id };
         const updateDoc = { $set: updateFields };
 
-        const updateResult = await MongoClientInstance.getCollection(Collection.APPLICATIONS).updateOne(filter, updateDoc);
+        const updateResult = await MongoClientInstance.getInstance().getCollection(Collection.APPLICATIONS).updateOne(filter, updateDoc);
 
         if (!updateResult.acknowledged) {
             return res.status(500).send(new ResponseMessage('Could not update data', 500, updateResult));
@@ -120,7 +120,7 @@ const updateApplicationById = async (req: Request, res: Response) => {
         return res.status(200).send(new ResponseMessage('Application updated successfully', 200));
 
     } catch (error) {
-        console.error('Update Application Error:', error);
+        logger.error(`Internal server error: ${error}`, 'api', 'update_application_by_id');
         return res.status(500).send(new ResponseMessage('Internal server error', 500, error));
     }
 };

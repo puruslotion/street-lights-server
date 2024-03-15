@@ -30,7 +30,7 @@ const updateLevel = async (req: Request, res: Response) => {
     
         res.status(200).send(new ResponseMessage(`log level has been changed to ${logLevel.level}`, 200));
     } catch (error) {
-        logger.error(error, 'api', 'chnagelevel');
+        logger.error(error, 'api', 'update_level');
         res.status(500).send(new ResponseMessage(`Internal server error: ${error}`, 500));
     }
    
