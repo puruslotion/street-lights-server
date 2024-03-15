@@ -15,10 +15,11 @@ export class MongoClientInstance {
     private static _client: MongoClient;
     private static _database: Db;
 
-    private constructor() {}
+    private constructor() {
+        logger.info(`Create a MongoClientInstance`, 'mongoclient', 'constructor', ForegroundColor.Green);
+    }
 
     private static init() {
-        logger.info(`Create a MongoClientInstance`, 'mongoclient', 'constructor', ForegroundColor.Green);
 
         const connectionString = `mongodb://${config.mongo.username}:${config.mongo.password}@${config.mongo.host}:${config.mongo.port}`;
         MongoClientInstance._client = new MongoClient(connectionString, {connectTimeoutMS: 1000});
