@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { changeLevel } from "../controllers/logger.controller";
+import { updateLevel } from "../controllers/logger.controller";
 
 export const loggerRoute = Router()
 
-loggerRoute.patch('/level', changeLevel);
+loggerRoute.patch('/level', updateLevel);

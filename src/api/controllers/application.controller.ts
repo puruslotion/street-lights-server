@@ -13,7 +13,8 @@ export class Application {
     public mqttBrokerUrl: string = "";
 }
 
-const addApplication = async (req: Request, res: Response) => {
+// POST
+const createApplication = async (req: Request, res: Response) => {
     try {
         const application: Application = req.body;
 
@@ -53,7 +54,8 @@ const addApplication = async (req: Request, res: Response) => {
     }
 };
 
-const getAllApplications = async (req: Request, res: Response) => {
+// GET
+const readAllApplications = async (req: Request, res: Response) => {
     try {
         const applications = await MongoClientInstance.getCollection(Collection.APPLICATIONS).find({}).toArray();
         
@@ -73,6 +75,7 @@ const getAllApplications = async (req: Request, res: Response) => {
     }
 }
 
+// PATCH
 const updateApplicationById = async (req: Request, res: Response) => {
     try {
         const application: Application = req.body;
@@ -122,4 +125,4 @@ const updateApplicationById = async (req: Request, res: Response) => {
     }
 };
 
-export { addApplication, getAllApplications, updateApplicationById };
+export { createApplication, readAllApplications, updateApplicationById };

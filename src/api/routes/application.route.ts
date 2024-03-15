@@ -1,10 +1,9 @@
 import { Router } from "express";
-import { addApplication, getAllApplications, updateApplicationById } from "../controllers/application.controller";
-// import { addMessage, getMessage } from "../controllers/message.controller";
+import {  createApplication, readAllApplications, updateApplicationById } from "../controllers/application.controller";
 
 export const applicationRoute = Router()
 
-applicationRoute.post('/add', addApplication);
-applicationRoute.get('/all', getAllApplications);
+applicationRoute.post('/add', createApplication);
+applicationRoute.get('/all', readAllApplications);
 applicationRoute.patch('/update', updateApplicationById);
 // messageRoute.get('/', getMessage)
