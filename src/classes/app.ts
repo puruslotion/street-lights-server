@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { DownDevice } from './device/subclasses/downDevice';
 import { JoinDevice } from './device/subclasses/joinDevice';
 import { LocationDevice } from './device/subclasses/locationDevice';
@@ -34,6 +35,32 @@ export class App {
 		await RedisInstance.getInstance().init();
 
 		// adding end devices to redis
+		await this.addingDevicesToRedis();
+
+		// init Mqtt
+		MqttInstance.getInstance();
+
+		// order does matter
+		this.initDeviceFactory();
+
+		// express server
+		this.initExpressServer();
+	}
+
+	private initExpressServer() {
+		const server = express();
+
+		// middleware
+		server.use(express.json());
+		server.use(express.urlencoded({ extended: false }));
+		server.use('/api/v1', routes);
+
+		server.listen(3000, () => {
+			logger.info(3000, 'server', 'port');
+		});
+	}
+
+	private async addingDevicesToRedis() {
 		(
 			await MongoClientInstance.getInstance()
 				.getCollection(Collection.END_DEVICES)
@@ -48,20 +75,6 @@ export class App {
 					`${REDIS_KEY.END_DEVICE}${endDevice.id}`,
 					JSON.stringify(endDevice),
 				);
-		});
-
-		// init Mqtt
-		MqttInstance.getInstance();
-
-		// order does matter
-		this.initDeviceFactory();
-
-		const server = express();
-		server.use(express.json());
-		server.use('/api/v1', routes);
-
-		server.listen(3000, () => {
-			logger.info(3000, 'server', 'port');
 		});
 	}
 

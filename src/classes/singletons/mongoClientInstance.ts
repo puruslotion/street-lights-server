@@ -9,6 +9,7 @@ const logger = new Logger();
 export enum Collection {
 	APPLICATIONS = 'applications',
 	END_DEVICES = 'end_devices',
+	USERS = 'users',
 }
 
 export class MongoClientInstance {

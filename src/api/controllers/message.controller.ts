@@ -5,15 +5,18 @@ import { Request, Response } from 'express';
 import { REDIS_KEY } from '../../enums/redisKey';
 import { PropertyType } from '../../enums/propertyType';
 import { Helper } from '../../classes/helper';
+import { Validate } from '../../classes/validate';
 
 const logger = new Logger();
 
-export class Message {
+class MessageController extends Validate {
 	id: string = '';
 	payload: string = '';
 
 	// eslint-disable-next-line
 	constructor(json: any) {
+		super();
+
 		if (this.validateProperty(json?.id, PropertyType.STRING, 'id')) {
 			this.id = json.id;
 		}
@@ -22,23 +25,12 @@ export class Message {
 			this.payload = json.payload;
 		}
 	}
-
-	// eslint-disable-next-line
-	private validateProperty(input: any, type: string, name: string) {
-		if (input && typeof input !== type) {
-			throw new Error(`${name} must be of type ${type}`);
-		} else if (!input) {
-			return false;
-		}
-
-		return true;
-	}
 }
 
 // POST
 const createMessage = async (req: Request, res: Response) => {
 	try {
-		const message = new Message(req.body);
+		const message = new MessageController(req.body);
 		message.id = Helper.sanitize(message.id);
 
 		if (!message.id) {
@@ -77,7 +69,7 @@ const createMessage = async (req: Request, res: Response) => {
 		const result = await RedisInstance.getInstance().redis().get(redisKey);
 
 		if (!result) {
-			const messages: Message[] = [];
+			const messages: MessageController[] = [];
 			messages.push(message);
 
 			RedisInstance.getInstance()
@@ -85,7 +77,7 @@ const createMessage = async (req: Request, res: Response) => {
 				.set(redisKey, JSON.stringify({ messages: messages }));
 		} else {
 			const obj = JSON.parse(result);
-			const messages = obj.messages as Message[];
+			const messages = obj.messages as MessageController[];
 			messages.push(message);
 
 			RedisInstance.getInstance()

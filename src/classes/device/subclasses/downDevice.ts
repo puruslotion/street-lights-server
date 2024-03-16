@@ -1,8 +1,8 @@
 // import pino from "pino";
-import { Message } from '../../../api/controllers/message.controller';
 import { Action } from '../../../enums/action';
 import { BackgroundColor } from '../../../enums/backgroundColor';
 import { REDIS_KEY } from '../../../enums/redisKey';
+import { Message } from '../../../redis/message';
 import { Logger } from '../../logger/logger';
 import { RedisInstance } from '../../singletons/redisInstance';
 import { Device } from '../device';

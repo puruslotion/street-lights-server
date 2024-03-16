@@ -5,13 +5,13 @@ import { RedisInstance } from '../../singletons/redisInstance';
 import { Downlink, DownlinkMessageTtn } from '../../ttn/downlinkMessageTtn';
 import { MqttInstance } from '../../singletons/mqttInstance';
 import { Logger } from '../../logger/logger';
-import { Message } from '../../../api/controllers/message.controller';
 import { REDIS_KEY } from '../../../enums/redisKey';
 import {
 	Collection,
 	MongoClientInstance,
 } from '../../singletons/mongoClientInstance';
 import { BackgroundColor } from '../../../enums/backgroundColor';
+import { Message } from '../../../redis/message';
 
 const logger = new Logger();
 

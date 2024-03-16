@@ -1,3 +1,5 @@
+import argon2 from 'argon2';
+
 export class Helper {
 	static bytesToString(bytes: Buffer) {
 		const decoder = new TextDecoder('utf-8');
@@ -38,5 +40,13 @@ export class Helper {
 		);
 
 		return deserializedError;
+	}
+
+	static async hashPassword(plainPassword: string) {
+		return await argon2.hash(plainPassword);
+	}
+
+	static async verifyPassword(plainPassword: string, hash: string) {
+		return await argon2.verify(hash, plainPassword);
 	}
 }

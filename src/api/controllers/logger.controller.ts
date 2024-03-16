@@ -3,28 +3,20 @@ import { Request, Response } from 'express';
 import { ResponseMessage } from '../../classes/responseMessage';
 import { PropertyType } from '../../enums/propertyType';
 import { Helper } from '../../classes/helper';
+import { Validate } from '../../classes/validate';
 
 const logger = new Logger();
 
-class LogLevel {
+class LogLevel extends Validate {
 	public level: number = 0;
 
 	// eslint-disable-next-line
 	constructor(json: any) {
+		super();
+
 		if (this.validateProperty(json?.level, PropertyType.NUMBER, 'level')) {
 			this.level = json.level;
 		}
-	}
-
-	// eslint-disable-next-line
-	private validateProperty(input: any, type: string, name: string) {
-		if (input && typeof input !== type) {
-			throw new Error(`${name} must be of type ${type}`);
-		} else if (!input) {
-			return false;
-		}
-
-		return true;
 	}
 }
 

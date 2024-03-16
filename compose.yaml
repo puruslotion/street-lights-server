@@ -2,6 +2,8 @@ services:
   street-light-server:
     container_name: street-lights-server
     image: streetlightsserver:latest
+    environment:
+      - JWT_SECRET=hello
     ports:
       - 3000:3000
     depends_on:

@@ -4,9 +4,10 @@ import {
 	readAllApplications,
 	updateApplicationById,
 } from '../controllers/application.controller';
+import { authenticateToken } from '../middlewares/authentication.middleware';
 
 export const applicationRoute = Router();
 
-applicationRoute.post('/add', createApplication);
-applicationRoute.get('/all', readAllApplications);
-applicationRoute.patch('/update', updateApplicationById);
+applicationRoute.post('/add', authenticateToken, createApplication);
+applicationRoute.get('/all', authenticateToken, readAllApplications);
+applicationRoute.patch('/update', authenticateToken, updateApplicationById);

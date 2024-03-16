@@ -7,10 +7,12 @@ import {
 import { Request, Response } from 'express';
 import { PropertyType } from '../../enums/propertyType';
 import { Helper } from '../../classes/helper';
+import { Validate } from '../../classes/validate';
+import { Application } from '../../db/application';
 
 const logger = new Logger();
 
-export class Application {
+class ApplicationController extends Validate {
 	public id: string = '';
 	public name?: string;
 	public description?: string;
@@ -19,6 +21,8 @@ export class Application {
 
 	// eslint-disable-next-line
 	constructor(json: any) {
+		super();
+
 		if (this.validateProperty(json?.id, PropertyType.STRING, 'id')) {
 			this.id = json.id;
 		}
@@ -51,49 +55,39 @@ export class Application {
 			this.mqttBrokerUrl = json.mqttBrokerUrl;
 		}
 	}
-
-	// eslint-disable-next-line
-	private validateProperty(input: any, type: string, name: string) {
-		if (input && typeof input !== type) {
-			throw new Error(`${name} must be of type ${type}`);
-		} else if (!input) {
-			return false;
-		}
-
-		return true;
-	}
 }
 
 // POST
 const createApplication = async (req: Request, res: Response) => {
 	try {
-		const application = new Application(req.body);
+		const temp = new ApplicationController(req.body);
+		const application = new Application(temp);
 		application.id = Helper.sanitize(application.id);
 
-		if (!application.id) {
-			return res
-				.status(400)
-				.send(new ResponseMessage('ID cannot be empty', 400));
-		}
+		// if (!application.id) {
+		// 	return res
+		// 		.status(400)
+		// 		.send(new ResponseMessage('ID cannot be empty', 400));
+		// }
 
-		if (!application.name) {
-			return res
-				.status(400)
-				.send(new ResponseMessage('Name cannot be empty', 400));
-		}
+		// if (!application.name) {
+		// 	return res
+		// 		.status(400)
+		// 		.send(new ResponseMessage('Name cannot be empty', 400));
+		// }
 
-		// this needs to be encrypted
-		if (!application.token) {
-			return res
-				.status(400)
-				.send(new ResponseMessage('Token cannot be empty', 400));
-		}
+		// // this needs to be encrypted
+		// if (!application.token) {
+		// 	return res
+		// 		.status(400)
+		// 		.send(new ResponseMessage('Token cannot be empty', 400));
+		// }
 
-		if (!application.mqttBrokerUrl) {
-			return res
-				.status(400)
-				.send(new ResponseMessage('MQTT broker url cannot be empty', 400));
-		}
+		// if (!application.mqttBrokerUrl) {
+		// 	return res
+		// 		.status(400)
+		// 		.send(new ResponseMessage('MQTT broker url cannot be empty', 400));
+		// }
 
 		const findResult = await MongoClientInstance.getInstance()
 			.getCollection(Collection.APPLICATIONS)
@@ -140,7 +134,7 @@ const readAllApplications = async (req: Request, res: Response) => {
 			.toArray();
 
 		const applicationArr = applications.map((value) => {
-			const app = new Application(value);
+			const app = new ApplicationController(value);
 
 			// removing password so it is not exposed
 			app.token = '';
@@ -168,7 +162,9 @@ const readAllApplications = async (req: Request, res: Response) => {
 // PATCH
 const updateApplicationById = async (req: Request, res: Response) => {
 	try {
-		const application: Application = new Application(req.body);
+		const application: ApplicationController = new ApplicationController(
+			req.body,
+		);
 		application.id = Helper.sanitize(application.id);
 
 		if (!application.id) {
