@@ -1,5 +1,6 @@
 import { Validate } from '../classes/validate';
 import { PropertyType } from '../enums/propertyType';
+import { v4 as uuidv4 } from 'uuid';
 
 export class Role {
 	static USER = 'user';
@@ -7,13 +8,22 @@ export class Role {
 }
 
 export class User extends Validate {
+	id: string = uuidv4();
 	username: string = '';
 	password: string = '';
 	roles: string[] = [];
 
+	public getNameOfClass(): string {
+		return 'User';
+	}
+
 	// eslint-disable-next-line
 	constructor(json: any) {
 		super();
+
+		if (json?.id) {
+			this.id = (json?._id as any).toString();
+		}
 
 		if (
 			this.validateProperty(

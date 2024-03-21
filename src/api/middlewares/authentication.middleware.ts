@@ -1,12 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { Logger } from '../../classes/logger/logger';
+import { RedisInstance } from '../../classes/singletons/redisInstance';
+import { REDIS_KEY } from '../../enums/redisKey';
+import { ResponseMessage } from '../../classes/responseMessage';
 
 const logger = new Logger();
 
 // Middleware for token authentication
-function authenticateToken(req: Request, res: Response, next: NextFunction) {
+async function authenticateToken(req: Request, res: Response, next: NextFunction) {
 	const authHeader = req.headers['cookie'];
+
+	console.log(authHeader);
 
 	if (
 		!authHeader ||
@@ -20,10 +25,17 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
 		);
 		return res
 			.status(401)
-			.send('Unauthorized: No token provided or invalid token format.');
+			.send(new ResponseMessage('Unauthorized: No token provided or invalid token format.', 401));
 	}
 
 	const token = authHeader.replace('token=', '');
+
+	const result = await RedisInstance.getInstance().redis().get(`${REDIS_KEY.LOGOUT}${token}`);
+
+	if (result) {
+		logger.info(`user has logged out: ${jwt.decode(token)}`, 'authenticate_token', 'logout');
+		return res.status(401).send(new ResponseMessage('Unauthorized: No token provided or invalid token format.', 401));
+	};
 
 	jwt.verify(token, process.env.JWT_SECRET!, (err, user) => {
 		if (err) {
@@ -32,7 +44,7 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
 				'middleware',
 				'authenticateToken',
 			);
-			return res.status(403).send('Forbidden: Invalid token.');
+			return res.status(403).send(new ResponseMessage('Forbidden: Invalid token.', 403));
 		}
 
 		Object.assign(req, { user: user });

@@ -8,6 +8,10 @@ export class Application extends Validate {
 	public token = '';
 	public mqttBrokerUrl: string = '';
 
+	public getNameOfClass() {
+		return 'Application';
+	}
+
 	// eslint-disable-next-line
 	constructor(json: any) {
 		super();

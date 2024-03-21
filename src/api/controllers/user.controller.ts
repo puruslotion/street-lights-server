@@ -7,7 +7,14 @@ import {
 	Collection,
 	MongoClientInstance,
 } from '../../classes/singletons/mongoClientInstance';
-import { User } from '../../db/user';
+import { Role, User } from '../../db/user';
+import { ForegroundColor } from '../../enums/foregroundColor';
+import { BackgroundColor } from '../../enums/backgroundColor';
+import jwt from 'jsonwebtoken';
+import { RedisInstance } from '../../classes/singletons/redisInstance';
+import { REDIS_KEY } from '../../enums/redisKey';
+import { Status } from '../../enums/status';
+
 
 const logger = new Logger();
 
@@ -29,9 +36,148 @@ class UserController extends Validate {
 		}
 
 		if (this.validateProperty(json?.roles, 'string', 'roles', false, true)) {
-			this.roles = json.roles;
+			this.roles = [...new Set(json.roles as string[])];
+			this.roles.forEach((value) => {
+				if (!Object.values(Role).includes(value)) {
+					throw new Error(`${value} is not a valid role`);
+				}
+			});
 		}
 	}
+}
+
+const login = async (req: Request, res: Response) => {
+	try {
+		if (await checkIfLoggedIn(req, res)) {
+			return res.status(200).send(new ResponseMessage(`Already logged in`, 200));
+		}
+
+		const loginController = new UserController(req.body);
+		loginController.username = Helper.sanitize(loginController.username);
+
+		// case insensitive search for username
+		const result = await MongoClientInstance.getInstance()
+			.getCollection(Collection.USERS)
+			.findOne(
+				{ username: loginController.username },
+				{ collation: { locale: 'en', strength: 2 } },
+			);
+
+		if (!result) {
+			return res
+				.status(401)
+				.send(new ResponseMessage('Invalid login credentials', 401));
+		}
+
+		const user = new User(result);
+		const isPasswordValid = await Helper.verifyPassword(
+			loginController.password,
+			user.password,
+		);
+
+		if (isPasswordValid) {
+			const accessToken = jwt.sign(
+				{ id: user.id, username: user.username, roles: user.roles },
+				process.env.JWT_SECRET!,
+				{ expiresIn: '15m' },
+			);
+
+			res.cookie('token', accessToken, {
+				httpOnly: true,
+				sameSite: 'none',
+				secure: false
+			});
+
+			logger.info('login succeeded', 'user', 'login', undefined, (logData => {
+				logData.userId = user.id;
+				logData.status = Status.SUCCESS;
+				MongoClientInstance.getInstance().getCollection(Collection.LOGS).insertOne(logData);
+			}));
+
+			return res.send(new ResponseMessage('login succeeded', 200));
+		} else {
+			return res.status(401).send('Login failed');
+		}
+		// eslint-disable-next-line
+	} catch (error: any) {
+		const err = Helper.parseError(error);
+		logger.error(err, 'api', 'login');
+		res.status(401).send(new ResponseMessage('Invalid login credentials', 401));
+	}
+};
+
+async function checkIfLoggedIn(req: Request, res: Response) {
+	return new Promise<boolean>(async (resolve) => {
+		const authHeader = req.headers['cookie'];
+
+		if (
+			!authHeader ||
+			typeof authHeader !== 'string' ||
+			!authHeader.startsWith('token=')
+		) {
+			resolve(false); 
+		}
+	
+		const token = authHeader?.replace('token=', '');
+
+		if (!token) {
+			resolve(false);
+		}
+
+		const result = await RedisInstance.getInstance().redis().get(`${REDIS_KEY.LOGOUT}${token}`)
+
+		if (result) {
+			resolve(false);
+		}
+	
+		jwt.verify(token!, process.env.JWT_SECRET!, (err, user) => {
+			if (err) {
+				resolve(false);
+			}
+	
+			resolve(true);
+		});
+	})
+}
+
+const isUserLoggedIn = async (req: Request, res: Response) => {
+	if (await checkIfLoggedIn(req, res)) {
+		return res.status(200).send(new ResponseMessage('logged in', 200));
+	}
+
+	return res.status(401).send(new ResponseMessage('not logged in', 401));
+}
+
+const logout = async (req: Request, res: Response) => {
+	const token = req.headers['cookie']?.replace('token=', '');
+
+	if (!token) 
+		return res
+			.status(400)
+			.send(new ResponseMessage('User not logged in', 400));;
+
+	const json = jwt.decode(token) as any ;
+	const { id, username, exp} = json;
+	const now = Date.now() / 1000;
+	const checkResult = await RedisInstance.getInstance().redis().get(`${REDIS_KEY.LOGOUT}${token}`);
+
+	if (checkResult) {
+		return res.status(401).send(new ResponseMessage(`${username} already logged out`, 401));
+	}
+
+	const insertResult = await RedisInstance.getInstance().redis().setex(`${REDIS_KEY.LOGOUT}${token}`, parseInt(exp) - Math.floor(now), JSON.stringify(json));
+
+	if (!insertResult) {
+		return res.status(400).send(new ResponseMessage(`${username} failed to log out`, 400));
+	}
+
+	logger.info('logout succeeded', 'user', 'logout', undefined, (logData => {
+		logData.userId = id;
+		logData.status = Status.SUCCESS;
+		MongoClientInstance.getInstance().getCollection(Collection.LOGS).insertOne(logData);
+	}));
+
+	return res.status(200).send(new ResponseMessage(`${username} logout succeeded`, 200));
 }
 
 const createUser = async (req: Request, res: Response) => {
@@ -78,7 +224,7 @@ const createUser = async (req: Request, res: Response) => {
 
 		const insertResult = await MongoClientInstance.getInstance()
 			.getCollection(Collection.USERS)
-			.insertOne(new User(userController));
+			.insertOne(userController);
 
 		if (!insertResult.acknowledged) {
 			return res
@@ -90,6 +236,8 @@ const createUser = async (req: Request, res: Response) => {
 					),
 				);
 		}
+
+		logger.info(`Created user with username ${userController.username}`, 'user', 'create_user', BackgroundColor.Green);
 
 		res
 			.status(200)
@@ -156,4 +304,4 @@ const getAllUsers = async (req: Request, res: Response) => {
 // 	}
 // };
 
-export { getAllUsers, createUser };
+export { getAllUsers, createUser, login, logout, isUserLoggedIn };
