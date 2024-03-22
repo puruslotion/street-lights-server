@@ -8,7 +8,7 @@ import { DeviceFactory } from './factories/deviceFactory';
 import { Type } from '../enums/type';
 import { RedisInstance } from './singletons/redisInstance';
 import express from 'express';
-import cors from 'cors'
+import cors from 'cors';
 import { MqttInstance } from './singletons/mqttInstance';
 import { routes } from '../api/routes/routes';
 import { Logger } from './logger/logger';
@@ -58,10 +58,12 @@ export class App {
 		const server = express();
 
 		// middleware
-		server.use(cors({
-			origin: ['http://localhost:5173', 'http://localhost:4173'],
-			credentials: true
-		}));
+		server.use(
+			cors({
+				origin: ['http://localhost:5173', 'http://localhost:4173'],
+				credentials: true,
+			}),
+		);
 		server.use(express.json());
 		server.use(express.urlencoded({ extended: true }));
 		server.use('/api/v1', routes);
@@ -89,15 +91,19 @@ export class App {
 		});
 	}
 
-	private async creatingFirstUser()
-	{
+	private async creatingFirstUser() {
 		if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) return;
 
-		const collectionNames = await MongoClientInstance.getInstance().getCollectionNames();
+		const collectionNames =
+			await MongoClientInstance.getInstance().getCollectionNames();
 		logger.info(collectionNames, 'mongo', 'collection_name');
 		const result = collectionNames.includes(Collection.USERS);
 
-		logger.info(`Does ${Collection.USERS} exist: ${result}`, 'mongo', 'collection_name');
+		logger.info(
+			`Does ${Collection.USERS} exist: ${result}`,
+			'mongo',
+			'collection_name',
+		);
 
 		// if the collection already exists then it must mean that there are already users created
 		if (result) return;
@@ -105,12 +111,14 @@ export class App {
 		const user = new User({
 			username: process.env.ADMIN_USERNAME,
 			password: await Helper.hashPassword(process.env.ADMIN_PASSWORD),
-			roles: Object.values(Role)
+			roles: Object.values(Role),
 		});
 
-		logger.info(user, 'mongo', 'create_first_user', BackgroundColor.Magenta)
+		logger.info(user, 'mongo', 'create_first_user', BackgroundColor.Magenta);
 
-		await MongoClientInstance.getInstance().getCollection(Collection.USERS).insertOne(user);
+		await MongoClientInstance.getInstance()
+			.getCollection(Collection.USERS)
+			.insertOne(user);
 	}
 	private showHeader() {
 		logger.info('============================'.yellow().reset());

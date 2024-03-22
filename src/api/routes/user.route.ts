@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { createUser, getAllUsers, isUserLoggedIn, login, logout } from '../controllers/user.controller';
+import {
+	createUser,
+	getAllUsers,
+	isUserLoggedIn,
+	login,
+	logout,
+} from '../controllers/user.controller';
 import { authenticateToken } from '../middlewares/authentication.middleware';
 
 export const userRoute = Router();

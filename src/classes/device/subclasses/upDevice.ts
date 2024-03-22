@@ -96,7 +96,7 @@ export class UpDevice extends Device {
 				`Failed to add to end device with id ${this._mqttInfo.endDeviceId.cyan().reset()} to database`,
 				'mongo',
 				'insert',
-				BackgroundColor.Red
+				BackgroundColor.Red,
 			);
 			return;
 		}
@@ -105,7 +105,7 @@ export class UpDevice extends Device {
 			`added end device with id ${this._mqttInfo.endDeviceId.cyan().reset()} to database`,
 			'mongo',
 			'insert',
-			BackgroundColor.Green
+			BackgroundColor.Green,
 		);
 
 		await this.shouldAddToRedis(endDevice);

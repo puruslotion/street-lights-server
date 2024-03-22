@@ -10,7 +10,7 @@ export enum Collection {
 	APPLICATIONS = 'applications',
 	END_DEVICES = 'end_devices',
 	USERS = 'users',
-	LOGS = 'logs'
+	LOGS = 'logs',
 }
 
 export class MongoClientInstance {
@@ -49,8 +49,10 @@ export class MongoClientInstance {
 		await MongoClientInstance._instance.connect();
 
 		Object.values(Collection).forEach(async (v) => {
-			await MongoClientInstance.getInstance().getCollection(v).createIndex({ id: 1 });
-		})
+			await MongoClientInstance.getInstance()
+				.getCollection(v)
+				.createIndex({ id: 1 });
+		});
 
 		const result = await MongoClientInstance._instance.ping();
 
@@ -71,15 +73,17 @@ export class MongoClientInstance {
 
 	public getType(collection: Collection) {
 		switch (collection) {
-			case Collection.APPLICATIONS: 
-			case Collection.END_DEVICES: 
-			case Collection.LOGS: 
-			case Collection.USERS: 
+			case Collection.APPLICATIONS:
+			case Collection.END_DEVICES:
+			case Collection.LOGS:
+			case Collection.USERS:
 		}
 	}
 
 	public async getCollectionNames() {
-		return (await MongoClientInstance._database.listCollections().toArray()).map(c => c.name);
+		return (
+			await MongoClientInstance._database.listCollections().toArray()
+		).map((c) => c.name);
 	}
 
 	public getCollection(collection: Collection) {

@@ -22,6 +22,7 @@ export class User extends Validate {
 		super();
 
 		if (json?.id) {
+			// eslint-disable-next-line
 			this.id = (json?._id as any).toString();
 		}
 

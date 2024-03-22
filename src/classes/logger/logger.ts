@@ -22,7 +22,13 @@ class LogData {
 	userId: string = '';
 	status: Status = Status.NONE;
 
-	constructor(logLevel: string, key: string, value: string, message: string, timestamp: string) {
+	constructor(
+		logLevel: string,
+		key: string,
+		value: string,
+		message: string,
+		timestamp: string,
+	) {
 		this.logLevel = logLevel;
 		this.key = key;
 		this.value = value;
@@ -53,7 +59,7 @@ export class Logger {
 		key = '',
 		value = '',
 		color?: ForegroundColor | BackgroundColor,
-		callback?: (logData: LogData) => void
+		callback?: (logData: LogData) => void,
 	) {
 		if (Logger._level > Level.DEB) return;
 
@@ -75,7 +81,7 @@ export class Logger {
 		key = '',
 		value = '',
 		color?: ForegroundColor | BackgroundColor,
-		callback?: (logData: LogData) => void
+		callback?: (logData: LogData) => void,
 	) {
 		if (Logger._level > Level.INF) return;
 
@@ -97,7 +103,7 @@ export class Logger {
 		key = '',
 		value = '',
 		color?: ForegroundColor | BackgroundColor,
-		callback?: (logData: LogData) => void
+		callback?: (logData: LogData) => void,
 	) {
 		if (Logger._level > Level.WAR) return;
 
@@ -119,7 +125,7 @@ export class Logger {
 		key = '',
 		value = '',
 		color?: ForegroundColor | BackgroundColor,
-		callback?: (logData: LogData) => void
+		callback?: (logData: LogData) => void,
 	) {
 		if (Logger._level > Level.ERR) return;
 
@@ -141,7 +147,7 @@ export class Logger {
 		key = '',
 		value = '',
 		color?: ForegroundColor | BackgroundColor,
-		callback?: (logData: LogData) => void
+		callback?: (logData: LogData) => void,
 	) {
 		const now = new Date().toJSON();
 
