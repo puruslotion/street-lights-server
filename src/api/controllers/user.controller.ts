@@ -46,7 +46,7 @@ class UserController extends Validate {
 
 const login = async (req: Request, res: Response) => {
 	try {
-		if (await checkIfLoggedIn(req, res)) {
+		if (await checkIfLoggedIn(req)) {
 			return res
 				.status(200)
 				.send(new ResponseMessage(`Already logged in`, 200));
